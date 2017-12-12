@@ -92,30 +92,26 @@ func (client *ZeroTierClient) GetNetworkDetails(networkID string) (network *Zero
 	return network, nil
 }
 
-func (client *ZeroTierClient) GetNetworkMemberDetails(network *ZeroTierNetwork, active bool) []ZeroTierNetworkMember {
+func (client *ZeroTierClient) GetNetworkMemberDetails(network *ZeroTierNetwork, onlineOnly bool) []ZeroTierNetworkMember {
 	logger.Debugln("GetNetworkMemberDetails", network.ID)
 	members := make([]ZeroTierNetworkMember, 0)
 
 	var memberIDs []string
-	if active {
-		for id := range network.ActiveMembers {
-			memberIDs = append(memberIDs, id)
-		}
-	} else {
-		allMembers, err := client.GetNetworkMembers(network.ID)
-		if err != nil {
-			logger.Error(err, "Can't list members")
-			return members
-		}
-		for _, v := range allMembers {
-			id := v["config"].(map[string]interface{})["address"].(string)
-			memberIDs = append(memberIDs, id)
-		}
+	allMembers, err := client.GetNetworkMembers(network.ID)
+	if err != nil {
+		logger.Error(err, "Can't list members")
+		return members
+	}
+	for _, v := range allMembers {
+		id := v["config"].(map[string]interface{})["address"].(string)
+		memberIDs = append(memberIDs, id)
 	}
 
 	for _, id := range memberIDs {
-
 		member, err := client.GetMemberDetail(network.ID, id)
+		if onlineOnly && !member.Online {
+			continue
+		}
 		if err != nil {
 			logger.Error(err)
 			continue
@@ -205,10 +201,9 @@ func (client *ZeroTierClient) getJSON(cmd string, payload interface{}) error {
 
 // ZeroTierNetwork represents the most useful information about a single network
 type ZeroTierNetwork struct {
-	ID            string
-	Description   string
-	Config        ZeroTierNetworkConfig
-	ActiveMembers map[string]interface{}
+	ID          string
+	Description string
+	Config      ZeroTierNetworkConfig
 }
 
 // ZeroTierNetworkConfig holds the configuration information for a network

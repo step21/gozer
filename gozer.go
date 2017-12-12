@@ -9,13 +9,10 @@ import (
 	"strings"
 )
 
-var activeOnly bool
-var allNetworks bool
+var onlineOnly bool
 
 func init() {
-	flag.BoolVar(&activeOnly, "active", false, "Show only active network members")
-	flag.BoolVar(&allNetworks, "all", false, "Show status for all networks")
-	flag.BoolVar(&allNetworks, "a", false, "Show status for all networks")
+	flag.BoolVar(&onlineOnly, "online", false, "Show only online network members")
 }
 
 func main() {
@@ -38,22 +35,9 @@ func main() {
 
 	client := ZeroTierClient{}
 
-	// var payload interface{}
-	//err = client.getJSON(apiUrl+apiCmdStatus, &payload)
-	//if err != nil {
-	//	logger.Fatal("Status request failed", err)
-	//}
-	if flag.NArg() == 0 && !allNetworks {
-		_, err := client.ListNetworks(true)
-		if err != nil {
-			logger.Fatal(err)
-		}
-		os.Exit(0)
-	}
-
 	network_names := make([]string, 0, 100)
 
-	if allNetworks {
+	if flag.NArg() == 0 {
 		networks, err := client.ListNetworks(false)
 		if err != nil {
 			logger.Fatal(err)
@@ -79,7 +63,7 @@ func main() {
 		fmt.Println(network.SummaryString())
 
 		// Get a list of members for the network, and iterate
-		members := client.GetNetworkMemberDetails(network, activeOnly)
+		members := client.GetNetworkMemberDetails(network, onlineOnly)
 		for _, member := range members {
 			fmt.Println("    ", member.SummaryString())
 		}
