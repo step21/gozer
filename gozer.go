@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 )
 
 var activeOnly bool
@@ -28,7 +29,7 @@ func main() {
 			}
 			log.Println("No token file " + apiTokenFile)
 		} else {
-			apiToken = string(token_buf)
+			apiToken = strings.TrimSpace(string(token_buf))
 		}
 	}
 	if len(apiToken) == 0 {
