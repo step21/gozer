@@ -120,7 +120,6 @@ func (client *ZeroTierClient) GetNetworkMemberDetails(network *ZeroTierNetwork, 
 			logger.Error(err)
 			continue
 		}
-		_, member.online = network.ActiveMembers[id]
 		pretty, err := json.MarshalIndent(member, "", "  ")
 		if err != nil {
 			logger.Error(err, "JSON pretty print failed")
@@ -230,11 +229,9 @@ type ZeroTierNetworkList struct {
 }
 
 func (network *ZeroTierNetwork) SummaryString() string {
-	return fmt.Sprintf("%-20s %s %s--%s %s",
-		network.Config.Name,
+	return fmt.Sprintf("%s %s %s",
 		network.ID,
-		network.Config.IPAssignmentPools[0].IPRangeStart,
-		network.Config.IPAssignmentPools[0].IPRangeEnd,
+		network.Config.Name,
 		network.Description)
 }
 
@@ -252,15 +249,15 @@ func (networks *ZeroTierNetworkList) FindIDorName(s string) (network *ZeroTierNe
 type ZeroTierNetworkMember struct {
 	NetworkID   string
 	NodeID      string
+	Hidden      bool
 	Name        string
 	Description string
+	Online      bool
 	Config      struct {
 		Authorized    bool
 		ActiveBridge  bool
-		Hidden        bool
 		IPAssignments []string
 	}
-	online bool
 }
 
 type byName []ZeroTierNetworkMember
@@ -269,12 +266,8 @@ func (a byName) Len() int           { return len(a) }
 func (a byName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a byName) Less(i, j int) bool { return a[i].Name < a[j].Name }
 
-func (member *ZeroTierNetworkMember) isOnline() bool {
-	return member.online
-}
-
 func (member *ZeroTierNetworkMember) SummaryString() (summary string) {
-	summary = fmt.Sprintf("%-15s %s %-30v %s",
+	summary = fmt.Sprintf("\t%-25s %s %v\t%s",
 		member.Name,
 		member.NodeID,
 		member.Config.IPAssignments,
@@ -285,10 +278,10 @@ func (member *ZeroTierNetworkMember) SummaryString() (summary string) {
 	if member.Config.ActiveBridge {
 		summary += " Bridged"
 	}
-	if member.Config.Hidden {
+	if member.Hidden {
 		summary += " Hidden"
 	}
-	if !member.isOnline() {
+	if !member.Online {
 		summary += " Offline"
 	}
 	return
