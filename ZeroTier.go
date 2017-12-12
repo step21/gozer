@@ -287,7 +287,7 @@ func (member *ZeroTierNetworkMember) SummaryString() (summary string) {
 func init() {
 	flag.StringVar(&apiToken, "api-token", "", "ZeroTier API token")
 	defaultFile := "${HOME}/.gozer-token"
-	if runtime.GOOS == "Windows" {
+	if runtime.GOOS == "windows" {
 		defaultFile = "${USERPROFILE}/.gozer-token"
 	}
 	flag.StringVar(&apiTokenFile, "api-token-file", defaultFile, "File containing ZeroTier API token")
