@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httputil"
+	"runtime"
 	"sort"
 )
 
@@ -285,5 +286,9 @@ func (member *ZeroTierNetworkMember) SummaryString() (summary string) {
 
 func init() {
 	flag.StringVar(&apiToken, "api-token", "", "ZeroTier API token")
-	flag.StringVar(&apiTokenFile, "api-token-file", "${HOME}/.gozer-token", "File containing ZeroTier API token")
+	defaultFile := "${HOME}/.gozer-token"
+	if runtime.GOOS == "Windows" {
+		defaultFile = "${USERPROFILE}/.gozer-token"
+	}
+	flag.StringVar(&apiTokenFile, "api-token-file", defaultFile, "File containing ZeroTier API token")
 }
